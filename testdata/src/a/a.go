@@ -284,3 +284,9 @@ func SwitchInNest(w io.Writer, i interface{}) error { // want "cognitive complex
 
 	return errors.New("nil interface")
 } // total complexity = 3
+
+func ForIntLoop() { // want "cognitive complexity 1 of func ForIntLoop is high \\(> 0\\)"
+	for i := range 10 { // +1
+		fmt.Println(i)
+	}
+} // total complexity = 1
