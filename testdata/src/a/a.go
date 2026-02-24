@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"iter"
 )
 
 func HelloWorld() string {
@@ -285,8 +286,64 @@ func SwitchInNest(w io.Writer, i interface{}) error { // want "cognitive complex
 	return errors.New("nil interface")
 } // total complexity = 3
 
-func ForIntLoop() { // want "cognitive complexity 1 of func ForIntLoop is high \\(> 0\\)"
+func ForLoop() { // want "cognitive complexity 4 of func ForLoop is high \\(> 0\\)"
+	score := 0
+	for i := 0; i <= 10; i++ { // +1
+		if i <= 5 { // +2 (nesting = 1)
+			score = score + 2
+		} else { // +1
+			score = score + 1
+		}
+	}
+
+	fmt.Println(score)
+} // total complexity = 4
+
+func ForRangeInt() { // want "cognitive complexity 4 of func ForRangeInt is high \\(> 0\\)"
+	score := 0
 	for i := range 10 { // +1
-		fmt.Println(i)
+		if i <= 5 { // +2 (nesting = 1)
+			score = score + 2
+		} else { // +1
+			score = score + 1
+		}
+	}
+
+	fmt.Println(score)
+} // total complexity = 4
+
+func CountDown(start int) iter.Seq[int] { // want "cognitive complexity 5 of func CountDown is high \\(> 0\\)"
+	return func(yield func(int) bool) { // nesting +1
+		for i := start; i > 0; i-- { // +2 (nesting = 1), nesting +1
+			if !yield(i) { // +3 (nesting = 2), nesting +1
+				return
+			}
+		}
+	}
+} // total compexity = 5
+
+func ForRangeIter() { // want "cognitive complexity 1 of func ForRangeIter is high \\(> 0\\)"
+	for n := range CountDown(5) { // +1, nesting +1
+		fmt.Println(n)
+	}
+} // total complexity = 1
+
+func FilteredMap(m map[string]int, threshold int) iter.Seq2[string, int] { // want "cognitive complexity 9 of func FilteredMap is high \\(> 0\\)"
+	return func(yield func(string, int) bool) { // nesting +1
+		for k, v := range m { // +2 (nesting = 1), nesting +1
+			if v > threshold { // +3 (nesting = 2) ,nesting +1
+				if !yield(k, v) { // +4 (nesting = 3), nesting +1
+					return
+				}
+			}
+		}
+	}
+} // total complexity = 9
+
+func ForRangeIter2() { // want "cognitive complexity 1 of func ForRangeIter2 is high \\(> 0\\)"
+	scores := map[string]int{"Alice": 50, "Bob": 90, "Charlie": 85}
+
+	for name, score := range FilteredMap(scores, 80) { // +1, nesting +1
+		fmt.Printf("%s: %d\n", name, score)
 	}
 } // total complexity = 1
