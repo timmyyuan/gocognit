@@ -13,9 +13,10 @@ import (
 const LinterName = "gocognit"
 
 type Options struct {
-	Over               int
-	SkipTests          bool
-	IncludeDiagnostics bool
+	Over                  int
+	SkipTests             bool
+	IncludeDiagnostics    bool
+	ExcludePathSubstrings []string
 }
 
 type Finding struct {
@@ -73,6 +74,9 @@ func CheckPaths(paths []string, opts Options) ([]Finding, error) {
 
 	var files []string
 	for _, path := range paths {
+		if pathExcluded(path, opts.ExcludePathSubstrings) {
+			continue
+		}
 		info, err := os.Stat(path)
 		if err != nil {
 			return nil, err
@@ -89,12 +93,18 @@ func CheckPaths(paths []string, opts Options) ([]Finding, error) {
 				return err
 			}
 			if info.IsDir() {
+				if pathExcluded(filename, opts.ExcludePathSubstrings) {
+					return filepath.SkipDir
+				}
 				return nil
 			}
 			if !strings.HasSuffix(filename, ".go") {
 				return nil
 			}
 			if opts.SkipTests && strings.HasSuffix(filename, "_test.go") {
+				return nil
+			}
+			if pathExcluded(filename, opts.ExcludePathSubstrings) {
 				return nil
 			}
 			files = append(files, filename)
@@ -114,6 +124,9 @@ func CheckFiles(files []string, opts Options) ([]Finding, error) {
 		if opts.SkipTests && strings.HasSuffix(filename, "_test.go") {
 			continue
 		}
+		if pathExcluded(filename, opts.ExcludePathSubstrings) {
+			continue
+		}
 		next, err := checkFile(filename, opts)
 		if err != nil {
 			return nil, err
@@ -122,6 +135,15 @@ func CheckFiles(files []string, opts Options) ([]Finding, error) {
 	}
 	SortFindings(findings)
 	return findings, nil
+}
+
+func pathExcluded(path string, substrings []string) bool {
+	for _, substring := range substrings {
+		if substring != "" && strings.Contains(path, substring) {
+			return true
+		}
+	}
+	return false
 }
 
 func CheckGolangCILintJSON(paths []string, opts Options) (GolangCILintJSON, error) {

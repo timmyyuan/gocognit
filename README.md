@@ -250,6 +250,7 @@ func main() {
 	opts := gocognit.DefaultOptions()
 	opts.Over = 25
 	opts.IncludeDiagnostics = true
+	opts.ExcludePathSubstrings = []string{"vendor/generated"}
 
 	report, err := gocognit.CheckGolangCILintJSON([]string{"."}, opts)
 	if err != nil {
@@ -265,7 +266,9 @@ func main() {
 ```
 
 Use `CheckPaths` when you need Heuris-native findings with function names,
-complexity scores, and optional per-increment diagnostics.
+complexity scores, and optional per-increment diagnostics. Set
+`ExcludePathSubstrings` to skip any file path that contains one of the configured
+substrings.
 
 ## Ignore individual functions
 Ignore individual functions by specifying `gocognit:ignore` directive.

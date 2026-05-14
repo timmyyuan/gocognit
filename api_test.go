@@ -40,6 +40,17 @@ func complex(x int) {
 		t.Fatal("expected positive complexity")
 	}
 
+	filtered, err := CheckFiles([]string{filename}, Options{
+		Over:                  0,
+		ExcludePathSubstrings: []string{filepath.Base(filename)},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(filtered) != 0 {
+		t.Fatalf("expected path filter to exclude findings, got %#v", filtered)
+	}
+
 	report := FindingsToGolangCILintJSON(findings)
 	data, err := json.Marshal(report)
 	if err != nil {
