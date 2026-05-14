@@ -231,6 +231,42 @@ The output fields for each line are:
 <complexity> <package> <function> <file:row:column>
 ```
 
+## Package API
+
+This fork also exposes a package API for integrations that need structured
+findings and golangci-lint-compatible JSON output:
+
+```go
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/uudashr/gocognit"
+)
+
+func main() {
+	opts := gocognit.DefaultOptions()
+	opts.Over = 25
+	opts.IncludeDiagnostics = true
+
+	report, err := gocognit.CheckGolangCILintJSON([]string{"."}, opts)
+	if err != nil {
+		panic(err)
+	}
+
+	data, err := json.Marshal(report)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(data))
+}
+```
+
+Use `CheckPaths` when you need Heuris-native findings with function names,
+complexity scores, and optional per-increment diagnostics.
+
 ## Ignore individual functions
 Ignore individual functions by specifying `gocognit:ignore` directive.
 ```go
